@@ -1,0 +1,29 @@
+{
+  "branches": ["master", "next"],
+  "plugins": [
+    ["@semantic-release/changelog", {
+      "changelogFile": "CHANGELOG.md"
+    }],
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    ["@semantic-release/exec", {
+      "prepareCmd": "sh ./.github/scripts/release.sh ${nextRelease.version}"
+    }],
+    ["@semantic-release/git", {
+      "assets": ["CHANGELOG.md", "package.json"],
+      "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+    }],
+    ["@semantic-release/github", {
+      "assets": [{
+        "path": "/tmp/release.zip",
+        "name": "nestjs-puppeteer-${nextRelease.version}.zip",
+        "label": "NestJS Puppeteer Module v${nextRelease.version}"
+      }]
+    }],
+    "@semantic-release/npm"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "tag": "latest"
+  }
+}

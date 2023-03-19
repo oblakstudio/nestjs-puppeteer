@@ -7,12 +7,14 @@ tsconfig.json
 .prettierrc
 
 # github
+.husky
 .github
 CONTRIBUTING.md
 renovate.json
 
 # misc
+.editorconfig
 .commitlintrc.json
-.release-it.json
+.releaserc
 .eslintignore
 .eslintrc.js
