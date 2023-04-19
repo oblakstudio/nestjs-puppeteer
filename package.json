@@ -1,7 +1,7 @@
 {
   "name": "nestjs-puppeteer",
   "description": "Puppeteer module for NestJS",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "MIT",
   "author": {
     "name": "Sibin Grasic",

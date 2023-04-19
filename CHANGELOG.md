@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/oblakstudio/nestjs-puppeteer/compare/v1.1.0...v1.1.1) (2023-04-19)
+
+
+### Bug Fixes
+
+* **deps:** Bumped dependency versions ([28a02eb](https://github.com/oblakstudio/nestjs-puppeteer/commit/28a02eb912f604467a4b3e405c9839d9d0e93fcf))
+
 # [1.1.0](https://github.com/oblakstudio/nestjs-puppeteer/compare/v1.0.0...v1.1.0) (2023-04-19)
 
 
