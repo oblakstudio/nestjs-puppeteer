@@ -21,9 +21,5 @@
       }]
     }],
     "@semantic-release/npm"
-  ],
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "tag": "latest"
-  }
+  ]
 }

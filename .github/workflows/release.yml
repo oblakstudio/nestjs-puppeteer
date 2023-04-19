@@ -3,10 +3,17 @@ on:
   push:
     branches:
       - master
+permissions:
+  contents: read
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
