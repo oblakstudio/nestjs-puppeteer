@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/oblakstudio/nestjs-puppeteer/compare/v1.0.0...v1.1.0) (2023-04-19)
+
+
+### Features
+
+* **docs:** Added readme [skip ci] ([dfdd97a](https://github.com/oblakstudio/nestjs-puppeteer/commit/dfdd97a117533d44b03e35538eb689050141a63a))
+
 # 1.0.0 (2023-03-19)
 
 
