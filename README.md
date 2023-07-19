@@ -15,7 +15,7 @@ Puppeteer module for Nest framework (node.js)
 To begin using it, we first install the required dependencies.
 
 ```sh
-$ npm install --save nestjs-puppeteer puppeteer-extra
+$ npm install --save oblakstudio/nestjs-puppeteer puppeteer-extra
 ```
 
 Once the installation process is complete we can import the ``PuppeteerModule`` into the root ``AppModule``
