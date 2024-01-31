@@ -41,4 +41,4 @@ jobs:
           GIT_COMMITTER_EMAIL: 'sibin.grasic+bot@oblak.studio'
           GITHUB_TOKEN: ${{ secrets.OBLAK_BOT_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-        run: npx run semantic-release
+        run: npx semantic-release@23
