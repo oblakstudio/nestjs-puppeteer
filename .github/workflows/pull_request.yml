@@ -61,6 +61,13 @@ jobs:
       - test_matrix
       - test
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm clean-install
+      - run: npm run test:e2e:cov
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
