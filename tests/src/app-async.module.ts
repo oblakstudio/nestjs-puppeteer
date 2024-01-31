@@ -8,7 +8,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 export function configurePuppeteer(): PuppeteerModuleOptions {
   return {
     plugins: [StealthPlugin()],
-    args: ['--incognito'],
+    headless: true,
   };
 }
 
@@ -20,6 +20,4 @@ export function configurePuppeteer(): PuppeteerModuleOptions {
     BaseModule,
   ],
 })
-export class AppAsyncModule {
-
-}
+export class AppAsyncModule {}

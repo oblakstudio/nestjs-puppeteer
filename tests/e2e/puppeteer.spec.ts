@@ -7,6 +7,7 @@ import { Server } from 'http';
 describe('Puppeteer', () => {
   let server: Server;
   let app: INestApplication;
+  process.env.PUPPETEER_DISABLE_HEADLESS_WARNING = 'true';
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
