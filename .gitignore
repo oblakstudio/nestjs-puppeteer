@@ -11,8 +11,7 @@ npm-debug.log
 .DS_Store
 
 # tests
-/test
-/coverage
+/tests/coverage
 /.nyc_output
 
 # dist
