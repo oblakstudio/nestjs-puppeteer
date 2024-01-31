@@ -14,9 +14,13 @@
     "format": "prettier --write \"**/*.ts\"",
     "lint": "eslint 'lib/**/*.ts' --fix",
     "test:e2e": "jest --config ./tests/jest-e2e.json --runInBand",
+    "test:e2e:cov": "jest --config ./tests/jest-e2e.json --runInBand --coverage",
     "test:e2e:dev": "jest --config ./tests/jest-e2e.json --runInBand --watch",
     "prepare": "husky install",
     "semantic-release": "semantic-release"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
