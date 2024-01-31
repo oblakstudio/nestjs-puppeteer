@@ -82,18 +82,14 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
     };
     const browserProvider = {
       provide: getBrowserToken(options),
-      useFactory: async(options: PuppeteerModuleOptions) => {
+      useFactory: async (options: PuppeteerModuleOptions) => {
         return await puppeteer.launch(options);
       },
       inject: [PUPPETEER_MODULE_OPTIONS],
     };
     const asyncProviders = this.createAsyncProviders(options);
 
-    const providers = [
-      ...asyncProviders,
-      pluginProvider,
-      browserProvider,
-    ];
+    const providers = [...asyncProviders, pluginProvider, browserProvider];
 
     const exports = [browserProvider];
 
@@ -108,7 +104,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
     const browser = this.moduleRef.get<Browser>(getBrowserToken(this.options));
 
     try {
-      if (browser && browser.isConnected()) {
+      if (browser && browser.connected) {
         this.logger.log('Closing browser...');
         await browser.close();
       }
@@ -131,7 +127,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
       {
         provide: useClass,
         useClass,
-      }
+      },
     ];
   }
 

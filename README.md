@@ -3,20 +3,30 @@
 # nestjs-puppeteer
 Puppeteer module for Nest framework (node.js)
 
-![npm](https://img.shields.io/npm/v/nestjs-puppeteer)
+[![npm](https://img.shields.io/npm/v/nestjs-puppeteer?logo=npm)](https://npmjs/package/nestjs-puppeteer)
 ![npm](https://img.shields.io/npm/dm/nestjs-puppeteer)
 ![GitHub](https://img.shields.io/github/license/oblakstudio/nestjs-puppeteer)
-[![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
+[![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)  
+![Puppeter Peer Dep](https://img.shields.io/npm/dependency-version/nestjs-puppeteer/peer/@nestjs/core?logo=nestjs&logoColor=E42844)
+![NestJS Peer Dep](https://img.shields.io/npm/dependency-version/nestjs-puppeteer/peer/puppeteer?logo=puppeteer&logoColor=%23fff)
 
 </div>
 
-## Usage
+Headless Chrome provider for [NestJS](https://nestjs.com/), enabling easy integration of Puppeteer into your application.
+
+> [!IMPORTANT]
+> Chrome introduces the _"New Headless"_ mode in version 112. Most of `puppeteer-extra` plugins are **NOT COMPATIBLE** with this mode. If you want to use `puppeteer-extra` plugins, you need to define `headless: true` in the module configuration.
+>
+> You can read more about the new headless mode [here](https://developer.chrome.com/docs/chromium/new-headless).
+
+## Installation
 
 To begin using it, we first install the required dependencies.
 
 ```sh
-$ npm install --save nestjs-puppeteer puppeteer-extra
+$ npm install --save nestjs-puppeteer puppeteer-extra puppeteer
 ```
+## Usage
 
 Once the installation process is complete we can import the ``PuppeteerModule`` into the root ``AppModule``
 
@@ -26,7 +36,7 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot(),
+    PuppeteerModule.forRoot({ headless: 'new' }),
   ],
 })
 export class AppModule {}
@@ -40,6 +50,7 @@ The ``forRoot()`` method supports all the configuration properties exposed by th
 | ``name``  | Browser name  |
 | ``plugins``  | An array of ``puppeteer-extra`` plugins  |
 | ``isGlobal`` | Should the module be registered in the global context |
+| ``headless`` | `new` for the [New Headless](https://developer.chrome.com/docs/chromium/new-headless) mode, or `true`/`false`  |
 
 Once this is done, the Puppeteer ``Browser`` instance will be available for injection in any of the providers in the application.
 
@@ -48,7 +59,7 @@ import { Browser } from 'puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot(),
+    PuppeteerModule.forRoot({ headless: 'new' }),
   ],
 })
 export class AppModule {
@@ -68,7 +79,7 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot(),
+    PuppeteerModule.forRoot({ headless: 'new' }),
     PuppeteerModule.forFeature(['page1', 'page2']),
   ],
 })
@@ -82,7 +93,7 @@ import { Page } from 'puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot(),
+    PuppeteerModule.forRoot({ headless: 'new' }),
     PuppeteerModule.forFeature(['page1', 'page2']),
   ],
 })
@@ -125,14 +136,15 @@ PuppeteerModule.forRootAsync({
   useClass: PuppeteerConfigService,
 })
 ```
-The construction above will instantiate ``PuppeteerConfigService`` inside ``PuppeteerModule`` and use it to provide an options object by calling ``createPuppeteerOptions()``. Note that this means that the ``PuppeteerConfigService`` has to implement the ``PuppeteerOptionsFactory`` interface, as shown below:
+The construction above will instantiate ``PuppeteerConfigService`` inside ``PuppeteerModule`` and use it to provide an options object by calling ``createPuppeteerOptions()``.  
+Note that this means that the ``PuppeteerConfigService`` has to implement the ``PuppeteerOptionsFactory`` interface, as shown below:
 
 ```ts
 @Injectable()
 class PuppeteerConfigService implements PuppeteerOptionsFactory {
   createPuppeteerOptions(): PuppeteerNodeLaunchOptions {
     return {
-      headless: false,
+      headless: 'new',
     };
   }
 }
