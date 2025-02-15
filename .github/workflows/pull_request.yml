@@ -38,7 +38,7 @@ jobs:
       - run: npm clean-install
       - name: Ensure dependencies are compatible with the version of node
         run: npx ls-engines
-      - run: aa-exec --profile=chrome npm run test:e2e:cov
+      - run: aa-exec --profile=chrome npm run test:e2e
 
   test:
     runs-on: ubuntu-latest
