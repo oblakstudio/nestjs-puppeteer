@@ -9,7 +9,7 @@ import { BaseModule } from './base/base.module';
       plugins:[
         StealthPlugin()
       ],
-      headless: 'new',
+      headless: true,
     }),
     BaseModule
   ]
