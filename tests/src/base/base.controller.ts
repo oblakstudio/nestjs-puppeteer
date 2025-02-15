@@ -31,7 +31,8 @@ export class BaseController {
 
   @Get('is-incognito')
   async isIncognito(): Promise<boolean> {
-    return this.browser.browserContexts().reduce((acc, context) => acc || context.isIncognito(), true);
+    await this.browser.createBrowserContext();
+    return this.browser.browserContexts().length > 1;
   }
 
   @Get('test-page')
