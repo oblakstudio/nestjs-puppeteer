@@ -7,6 +7,7 @@ import { Server } from 'http';
 describe('Puppeteer', () => {
   let server: Server;
   let app: INestApplication;
+  let baseUrl: string;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -14,23 +15,28 @@ describe('Puppeteer', () => {
     }).compile();
 
     app = module.createNestApplication();
+    await app.listen(0);
     server = app.getHttpServer();
-    await app.init();
+    const address = server.address();
+    if (address === null || typeof address === 'string') {
+      throw new Error('Test server is not listening on a TCP port');
+    }
+    baseUrl = `http://localhost:${address.port}/`;
   });
 
-  it(`should get hello world`, () => {
+  it('serves a page through an ad-hoc Browser.newPage()', () => {
     return request(server)
-      .post('/basic-page' )
-      .send({ url: `http://localhost:${app.getHttpServer().address().port}/` })
-      .expect(201, {html: '<html><head></head><body>Hello World!</body></html>'});
+      .post('/basic-page')
+      .send({ url: baseUrl })
+      .expect(201, { html: '<html><head></head><body>Hello World!</body></html>' });
   }, 30000);
 
-  it(`should should work with a feature page`, () => {
+  it('resolves a forFeature-registered Page via @InjectPage', () => {
     return request(server)
       .get('/test-page')
-      .expect(200, 'false');
+      .query({ url: baseUrl })
+      .expect(200, 'true');
   }, 30000);
-
 
   afterEach(async () => {
     await app.close();

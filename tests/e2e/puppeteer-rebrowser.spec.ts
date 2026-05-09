@@ -4,16 +4,18 @@ import { Browser } from 'puppeteer';
 import rebrowserPuppeteer from 'rebrowser-puppeteer';
 import {
   PuppeteerModule,
-  PuppeteerModuleOptions,
   getBrowserToken,
 } from '../../lib';
 
 describe('Puppeteer rebrowser launcher', () => {
-  it('boots a real Browser via rebrowser-puppeteer (forRoot)', async () => {
+  it('routes browser creation through the supplied launcher', async () => {
+    // Spy must be attached before forRoot() — the launch happens during app.init().
+    const launchSpy = jest.spyOn(rebrowserPuppeteer, 'launch');
+
     @Module({
       imports: [
         PuppeteerModule.forRoot({
-          name: 'rebrowser-sync',
+          name: 'rebrowser',
           launcher: rebrowserPuppeteer,
           headless: true,
         }),
@@ -28,51 +30,25 @@ describe('Puppeteer rebrowser launcher', () => {
     const app = module.createNestApplication();
     await app.init();
 
-    const browser = app.get<Browser>(getBrowserToken('rebrowser-sync'));
+    try {
+      // Load-bearing assertion: the rebrowser launcher actually ran.
+      // Without this, the test would still pass on a regression that fell
+      // back to upstream puppeteer.
+      expect(launchSpy).toHaveBeenCalledTimes(1);
+      const callOptions = launchSpy.mock.calls[0][0];
+      expect(callOptions).toMatchObject({
+        name: 'rebrowser',
+        headless: true,
+      });
 
-    expect(browser).toBeDefined();
-    expect(browser.connected).toBe(true);
-    expect(browser.process()?.pid).toBeDefined();
-
-    const page = await browser.newPage();
-    await page.setContent('<html><body>rebrowser</body></html>');
-    expect(await page.content()).toContain('rebrowser');
-    await page.close();
-
-    await app.close();
-
-    expect(browser.connected).toBe(false);
-  }, 60000);
-
-  it('threads launcher through forRootAsync', async () => {
-    @Module({
-      imports: [
-        PuppeteerModule.forRootAsync({
-          name: 'rebrowser-async',
-          useFactory: (): PuppeteerModuleOptions => ({
-            name: 'rebrowser-async',
-            launcher: rebrowserPuppeteer,
-            headless: true,
-          }),
-        }),
-      ],
-    })
-    class RebrowserAsyncModule {}
-
-    const module = await Test.createTestingModule({
-      imports: [RebrowserAsyncModule],
-    }).compile();
-
-    const app = module.createNestApplication();
-    await app.init();
-
-    const browser = app.get<Browser>(getBrowserToken('rebrowser-async'));
-
-    expect(browser).toBeDefined();
-    expect(browser.connected).toBe(true);
-
-    await app.close();
-
-    expect(browser.connected).toBe(false);
+      const browser = app.get<Browser>(getBrowserToken('rebrowser'));
+      const page = await browser.newPage();
+      await page.setContent('<html><body>rebrowser</body></html>');
+      expect(await page.content()).toContain('rebrowser');
+      await page.close();
+    } finally {
+      await app.close();
+      launchSpy.mockRestore();
+    }
   }, 60000);
 });

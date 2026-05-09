@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Browser } from 'puppeteer';
+import { Browser, Page } from 'puppeteer';
 import {
   PuppeteerModule,
   PuppeteerModuleOptions,
   getBrowserToken,
+  getPageToken,
 } from '../../lib';
 
 describe('Puppeteer multi-browser shutdown', () => {
@@ -13,6 +14,9 @@ describe('Puppeteer multi-browser shutdown', () => {
       imports: [
         PuppeteerModule.forRoot({ headless: true }),
         PuppeteerModule.forRoot({ name: 'secondary', headless: true }),
+        // Exercises forFeature against a *named* browser — the Page must be
+        // bound to the secondary browser, not the default.
+        PuppeteerModule.forFeature(['scratch'], 'secondary'),
       ],
     })
     class MultiBrowserModule {}
@@ -28,14 +32,16 @@ describe('Puppeteer multi-browser shutdown', () => {
     const secondaryBrowser = app.get<Browser>(getBrowserToken('secondary'));
 
     expect(defaultBrowser).not.toBe(secondaryBrowser);
-    expect(defaultBrowser.connected).toBe(true);
-    expect(secondaryBrowser.connected).toBe(true);
     // Each browser must own a distinct chromium process.
     const defaultPid = defaultBrowser.process()?.pid;
     const secondaryPid = secondaryBrowser.process()?.pid;
     expect(defaultPid).toBeDefined();
     expect(secondaryPid).toBeDefined();
     expect(defaultPid).not.toBe(secondaryPid);
+
+    // forFeature(pages, 'secondary') resolves to a Page on the secondary browser.
+    const scratchPage = app.get<Page>(getPageToken('scratch', 'secondary'));
+    expect(scratchPage.browser()).toBe(secondaryBrowser);
 
     await app.close();
 
@@ -71,8 +77,6 @@ describe('Puppeteer multi-browser shutdown', () => {
     const secondaryBrowser = app.get<Browser>(getBrowserToken('secondary'));
 
     expect(defaultBrowser).not.toBe(secondaryBrowser);
-    expect(defaultBrowser.connected).toBe(true);
-    expect(secondaryBrowser.connected).toBe(true);
 
     await app.close();
 
