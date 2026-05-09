@@ -53,6 +53,36 @@ jobs:
         run: npx ls-engines
       - run: aa-exec --profile=chrome npm run test:e2e
 
+  test-libs:
+    name: Test NestJS ${{ matrix.nest-version }} / Puppeteer ${{ matrix.puppeteer-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        nest-version:
+          - 10
+          - 11
+        puppeteer-version:
+          - 23
+          - 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm clean-install
+      - name: Install matrix versions of NestJS and Puppeteer
+        run: |
+          npm install --no-save \
+            @nestjs/common@^${{ matrix.nest-version }} \
+            @nestjs/core@^${{ matrix.nest-version }} \
+            @nestjs/platform-express@^${{ matrix.nest-version }} \
+            @nestjs/testing@^${{ matrix.nest-version }} \
+            puppeteer@^${{ matrix.puppeteer-version }}
+      - run: aa-exec --profile=chrome npm run test:e2e
+
   coverage:
     name: Coverage
     if: github.event_name == 'merge_group'
@@ -60,6 +90,7 @@ jobs:
     needs:
       - lint
       - test
+      - test-libs
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
