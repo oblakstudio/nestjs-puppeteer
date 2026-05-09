@@ -17,7 +17,7 @@ Puppeteer module for Nest framework (node.js)
 Headless Chrome provider for [NestJS](https://nestjs.com/), enabling easy integration of Puppeteer into your application.
 
 > [!IMPORTANT]
-> Chrome introduces the _"New Headless"_ mode in version 112. Most of `puppeteer-extra` plugins are **NOT COMPATIBLE** with this mode. If you want to use `puppeteer-extra` plugins, you need to define `headless: true` in the module configuration.
+> Chrome introduces the _"New Headless"_ mode in version 112. Most `puppeteer-extra` plugins are **NOT COMPATIBLE** with this mode. If you want to use `puppeteer-extra` plugins, you need to define `headless: true` in the module configuration.
 >
 > You can read more about the new headless mode [here](https://developer.chrome.com/docs/chromium/new-headless).
 
@@ -107,7 +107,7 @@ export class AppModule {
 
 ### Async configuration
 
-You may want to pass your repository module options asynchronously instead of statically. In this case, use the ``forRootAsync()`` method, which provides several ways to deal with async configuration.
+You may want to pass your module options asynchronously instead of statically. In this case, use the ``forRootAsync()`` method, which provides several ways to deal with async configuration.
 
 One approach is to use a factory function:
 
