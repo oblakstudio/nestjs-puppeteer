@@ -32,7 +32,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
     private readonly moduleRef: ModuleRef,
   ) {}
 
-  static forRoot(options: any = {}): DynamicModule {
+  static forRoot(options: PuppeteerModuleOptions = {}): DynamicModule {
     const puppeteerModuleOptions = {
       provide: PUPPETEER_MODULE_OPTIONS,
       useValue: options,

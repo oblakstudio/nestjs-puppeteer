@@ -1,4 +1,9 @@
-import { ModuleMetadata, Type } from '@nestjs/common';
+import {
+  InjectionToken,
+  ModuleMetadata,
+  OptionalFactoryDependency,
+  Type,
+} from '@nestjs/common';
 import { PuppeteerNodeLaunchOptions } from 'puppeteer';
 import { PuppeteerExtraPlugin } from 'puppeteer-extra';
 
@@ -31,5 +36,5 @@ export interface PuppeteerModuleAsyncOptions extends Pick<ModuleMetadata, 'impor
   useExisting?: Type<PuppeteerOptionsFactory>;
   useClass?: Type<PuppeteerOptionsFactory>;
   useFactory?: (...args: any[]) => Promise<PuppeteerModuleOptions> | PuppeteerModuleOptions;
-  inject?: any[];
+  inject?: Array<InjectionToken | OptionalFactoryDependency>;
 }
