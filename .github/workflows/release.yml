@@ -56,3 +56,4 @@ jobs:
           GIT_COMMITTER_NAME: ${{ steps.gpg.outputs.name }}
           GIT_COMMITTER_EMAIL: ${{ steps.gpg.outputs.email }}
           GITHUB_TOKEN: ${{ secrets.OBLAKBOT_PAT }}
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
