@@ -115,7 +115,11 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
         await browser.close();
       }
     } catch (e) {
-      this.logger.error(e?.message);
+      if (e instanceof Error) {
+        this.logger.error(`Failed to close browser: ${e.message}`, e.stack);
+      } else {
+        this.logger.error(`Failed to close browser: ${String(e)}`);
+      }
     }
   }
 
