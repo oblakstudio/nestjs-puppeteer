@@ -8,8 +8,6 @@ import {
 } from '../../lib';
 
 describe('Puppeteer multi-browser shutdown', () => {
-  process.env.PUPPETEER_DISABLE_HEADLESS_WARNING = 'true';
-
   it('closes every browser instance on app shutdown (forRoot)', async () => {
     @Module({
       imports: [

@@ -9,9 +9,7 @@ import {
   Type,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import puppeteer from 'puppeteer-extra';
-import { PuppeteerExtraPlugin } from 'puppeteer-extra';
-import { Browser } from 'puppeteer';
+import puppeteer, { Browser } from 'puppeteer';
 import {
   PuppeteerModuleAsyncOptions,
   PuppeteerModuleOptions,
@@ -19,12 +17,9 @@ import {
 } from './interfaces';
 import {
   DEFAULT_BROWSER_NAME,
-  PUPPETEER_BROWSER_PLUGINS,
   PUPPETEER_MODULE_OPTIONS,
 } from './puppeteer.constants';
 import { getBrowserToken } from './common';
-
-const pluginRegistrationLogger = new Logger('PuppeteerModule');
 
 const registeredBrowserNames = new Set<string>();
 
@@ -54,38 +49,6 @@ function releaseBrowserName(name: string | undefined): void {
   registeredBrowserNames.delete(resolveBrowserKey(name));
 }
 
-/**
- * Register plugins on the global puppeteer-extra singleton, skipping any whose
- * name is already registered. puppeteer-extra holds plugin state in module
- * scope, so naive re-registration (e.g. multiple forRoot calls in tests) would
- * stack duplicate plugins on every subsequent launch.
- */
-function registerPlugins(
-  plugins: PuppeteerExtraPlugin[] | undefined,
-): PuppeteerExtraPlugin[] {
-  if (!plugins?.length) {
-    return [];
-  }
-
-  const registered = new Set<string>(puppeteer.pluginNames);
-
-  for (const plugin of plugins) {
-    const name = plugin?.name;
-    if (typeof name === 'string' && registered.has(name)) {
-      pluginRegistrationLogger.warn(
-        `Skipping duplicate puppeteer-extra plugin "${name}" — already registered on the global instance.`,
-      );
-      continue;
-    }
-    puppeteer.use(plugin);
-    if (typeof name === 'string') {
-      registered.add(name);
-    }
-  }
-
-  return plugins;
-}
-
 @Global()
 @Module({})
 export class PuppeteerCoreModule implements OnApplicationShutdown {
@@ -104,13 +67,6 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
       useValue: options,
     };
 
-    const pluginProvider = {
-      provide: PUPPETEER_BROWSER_PLUGINS,
-      useFactory: async (options: PuppeteerModuleOptions) =>
-        registerPlugins(options.plugins),
-      inject: [PUPPETEER_MODULE_OPTIONS],
-    };
-
     const browserProvider = {
       provide: getBrowserToken(options),
       useFactory: async (options: PuppeteerModuleOptions) => {
@@ -119,7 +75,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
       inject: [PUPPETEER_MODULE_OPTIONS],
     };
 
-    const providers = [puppeteerModuleOptions, pluginProvider, browserProvider];
+    const providers = [puppeteerModuleOptions, browserProvider];
     const exports = [browserProvider];
 
     return {
@@ -138,12 +94,6 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
 
     claimBrowserName(options.name);
 
-    const pluginProvider = {
-      provide: PUPPETEER_BROWSER_PLUGINS,
-      useFactory: async (options: PuppeteerModuleOptions) =>
-        registerPlugins(options.plugins),
-      inject: [PUPPETEER_MODULE_OPTIONS],
-    };
     const browserProvider = {
       provide: getBrowserToken(options),
       useFactory: async (options: PuppeteerModuleOptions) => {
@@ -153,7 +103,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
     };
     const asyncProviders = this.createAsyncProviders(options);
 
-    const providers = [...asyncProviders, pluginProvider, browserProvider];
+    const providers = [...asyncProviders, browserProvider];
 
     const exports = [browserProvider];
 

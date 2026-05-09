@@ -4,10 +4,9 @@ import request from 'supertest';
 import { Server } from 'http';
 import { AppAsyncModule } from '../src/app-async.module';
 
-describe('Puppeteer with Plugin', () => {
+describe('Puppeteer async config', () => {
   let server: Server;
   let app: INestApplication;
-  process.env.PUPPETEER_DISABLE_HEADLESS_WARNING = 'true';
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -24,12 +23,6 @@ describe('Puppeteer with Plugin', () => {
       .post('/basic-page' )
       .send({ url: `http://localhost:${app.getHttpServer().address().port}/` })
       .expect(201, {html: '<html><head></head><body>Hello World!</body></html>'});
-  }, 90000);
-
-  it(`should pass the stealth check`, () => {
-    return request(server)
-      .get('/stealth-check')
-      .expect(200, 'true');
   }, 90000);
 
   it(`should work in icognito mode`, () => {

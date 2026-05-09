@@ -22,13 +22,6 @@ export class BaseController {
     return { html: await page.content() };
   }
 
-  @Get('stealth-check')
-  async stealthCheck(): Promise<boolean> {
-    const page = await this.browser.newPage();
-    await page.goto('https://arh.antoinevastel.com/bots/areyouheadless');
-    return (await page.content()).includes('You are not Chrome headless');
-  }
-
   @Get('is-incognito')
   async isIncognito(): Promise<boolean> {
     await this.browser.createBrowserContext();
