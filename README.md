@@ -151,3 +151,35 @@ class PuppeteerConfigService implements PuppeteerOptionsFactory {
   }
 }
 ```
+
+### Using rebrowser-puppeteer
+
+`PuppeteerModule` accepts a `launcher` option for swapping the bundled `puppeteer` for a drop-in alternative. The primary supported alternative is [`rebrowser-puppeteer`](https://github.com/rebrowser/rebrowser-patches), which applies anti-detection patches on top of upstream puppeteer.
+
+```sh
+$ npm install --save rebrowser-puppeteer
+```
+
+```ts
+import puppeteer from 'rebrowser-puppeteer';
+import { PuppeteerModule } from 'nestjs-puppeteer';
+
+@Module({
+  imports: [
+    PuppeteerModule.forRoot({ launcher: puppeteer, headless: true }),
+  ],
+})
+export class AppModule {}
+```
+
+> [!IMPORTANT]
+> Always import `Browser` from `puppeteer` (not `rebrowser-puppeteer`) when using `@InjectBrowser()`. The decorator's DI token is the upstream `Browser` class identity; a class re-exported from a different package is a different token even though it is structurally compatible at runtime.
+
+> [!NOTE]
+> `rebrowser-puppeteer`'s postinstall script downloads upstream puppeteer's pinned Chromium revision rather than its own, so the first `.launch()` call fails with "Could not find Chrome (ver. \<revision>)". Trigger rebrowser's own download once after install:
+>
+> ```sh
+> $ node -e "import('rebrowser-puppeteer/internal/node/install.js').then(m => m.downloadBrowsers())"
+> ```
+
+The `launcher` option accepts any object exposing a `launch(options)` method, so other puppeteer-compatible builds work the same way.

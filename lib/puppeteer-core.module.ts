@@ -70,7 +70,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
     const browserProvider = {
       provide: getBrowserToken(options),
       useFactory: async (options: PuppeteerModuleOptions) => {
-        return await puppeteer.launch(options);
+        return await (options.launcher ?? puppeteer).launch(options);
       },
       inject: [PUPPETEER_MODULE_OPTIONS],
     };
@@ -97,7 +97,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
     const browserProvider = {
       provide: getBrowserToken(options),
       useFactory: async (options: PuppeteerModuleOptions) => {
-        return await puppeteer.launch(options);
+        return await (options.launcher ?? puppeteer).launch(options);
       },
       inject: [PUPPETEER_MODULE_OPTIONS],
     };

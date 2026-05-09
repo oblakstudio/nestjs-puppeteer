@@ -91,7 +91,7 @@ Be deliberate. Don't tag a bug fix as `chore:` or it won't ship; don't tag a ref
 
 ## Build & Test
 
-Node.js >= 20 (see `.nvmrc`). Package is published as `nestjs-puppeteer`; source lives in `lib/` and compiles to `dist/`. Peer deps span `@nestjs/common`/`@nestjs/core` `^10 || ^11` and `puppeteer` `^21 || ^22 || ^23` — public API and types must stay compatible across all of these.
+Node.js >= 20 (see `.nvmrc`). Package is published as `nestjs-puppeteer`; source lives in `lib/` and compiles to `dist/`. Peer deps span `@nestjs/common`/`@nestjs/core` `^10 || ^11` and `puppeteer` `^22 || ^23 || ^24` — public API and types must stay compatible across all of these. `rebrowser-puppeteer` `^24` is an optional peer (declared via `peerDependenciesMeta`) used when the consumer passes it as `PuppeteerModuleOptions.launcher`.
 
 ```bash
 npm install
@@ -109,16 +109,16 @@ npx jest --config ./tests/jest-e2e.json --runInBand tests/e2e/puppeteer.spec.ts
 
 There are no unit tests — all tests are e2e specs in `tests/e2e/*.spec.ts` that boot a NestJS app via `@nestjs/testing` and drive it with `supertest`. They launch real Chromium, so they need a working Puppeteer install. CI runs them under AppArmor (`aa-exec --profile=chrome`) on Ubuntu — locally that prefix is not needed.
 
-The `stealth-check` test in `tests/e2e/puppeteer-with-plugin.spec.ts` hits `https://arh.antoinevastel.com/bots/areyouheadless` and requires network access.
+`tests/e2e/puppeteer-rebrowser.spec.ts` boots Chromium via `rebrowser-puppeteer` (the optional peer dep) to exercise the `launcher` option end-to-end. `rebrowser-puppeteer`'s published `install.mjs` is broken — it calls upstream puppeteer's `downloadBrowsers()` and so installs upstream's pinned Chromium instead of rebrowser's own pinned revision. `scripts/install-rebrowser-chrome.mjs` (wired up via the `pretest:e2e` npm script) calls `rebrowser-puppeteer/internal/node/install.js`'s `downloadBrowsers()` directly to fetch rebrowser's revision before tests run. Both Chromiums end up in `~/.cache/puppeteer` — disk usage is roughly doubled, which is acceptable.
 
 ## Architecture Overview
 
-This is a thin NestJS wrapper around `puppeteer-extra` that exposes a `Browser` (and named `Page`s) through Nest's DI container. The whole library is ~6 small files in `lib/`.
+This is a thin NestJS wrapper around `puppeteer` that exposes a `Browser` (and named `Page`s) through Nest's DI container. The whole library is ~6 small files in `lib/`.
 
 **Two-module pattern (mirrors `@nestjs/typeorm`, `@nestjs/mongoose`, etc.):**
 
 - `PuppeteerModule` (`lib/puppeteer.module.ts`) — public façade with three statics: `forRoot`, `forRootAsync`, `forFeature`. Holds no state; delegates to the core module.
-- `PuppeteerCoreModule` (`lib/puppeteer-core.module.ts`) — `@Global()`, owns the singleton `Browser` and the plugin registration. Implements `OnApplicationShutdown` to call `browser.close()` cleanly. The async branch (`forRootAsync`) supports `useFactory` / `useClass` / `useExisting` via `PuppeteerOptionsFactory.createPuppeteerOptions(name?)`.
+- `PuppeteerCoreModule` (`lib/puppeteer-core.module.ts`) — `@Global()`, owns the singleton `Browser`. Implements `OnApplicationShutdown` to call `browser.close()` cleanly. The async branch (`forRootAsync`) supports `useFactory` / `useClass` / `useExisting` via `PuppeteerOptionsFactory.createPuppeteerOptions(name?)`.
 
 **DI token scheme (`lib/common/puppeteer.utils.ts`):**
 
@@ -128,11 +128,9 @@ This is a thin NestJS wrapper around `puppeteer-extra` that exposes a `Browser` 
 
 This is why `forFeature(pages, browser?)` must receive the *same* browser identifier (string name or options object) used at `forRoot` — the tokens are derived from it, not looked up. Mismatched names produce DI resolution errors, not runtime warnings.
 
-**Plugin handling:** `options.plugins` is an array of `PuppeteerExtraPlugin`s. The core module calls `puppeteer.use(plugin)` for each before launching. Because `puppeteer-extra` mutates global state, plugins registered on one browser affect any subsequent `puppeteer.launch()` in the same process — keep this in mind when adding multi-browser tests.
+**Pluggable launcher:** `PuppeteerModuleOptions.launcher` accepts any object with a `launch(options)` method and is used in place of the bundled `puppeteer` import when set. Primary use case is `rebrowser-puppeteer` (drop-in fork with anti-detection patches). The `puppeteer-extra` integration that lived here pre-v3.0.0 is gone and is not coming back; the library does not document or test that path even though a determined user could pass `addExtra(puppeteer)` as a launcher.
 
-> Per README: most `puppeteer-extra` plugins are **not compatible** with Chrome's "new headless" mode. When using plugins (e.g. stealth), pass `headless: true`, not `headless: 'new'`.
-
-**Public API surface** (re-exported from `lib/index.ts`): `PuppeteerModule`, `PuppeteerCoreModule`, decorators (`InjectBrowser`, `InjectPage`), token helpers (`getBrowserToken`, `getPageToken`, `getBrowserPrefix`), constants, and the `PuppeteerModuleOptions` / `PuppeteerModuleAsyncOptions` / `PuppeteerOptionsFactory` interfaces. Treat anything exported here as a breaking-change surface.
+**Public API surface** (re-exported from `lib/index.ts`): `PuppeteerModule`, `PuppeteerCoreModule`, decorators (`InjectBrowser`, `InjectPage`), token helpers (`getBrowserToken`, `getPageToken`, `getBrowserPrefix`), constants, and the `PuppeteerModuleOptions` / `PuppeteerModuleAsyncOptions` / `PuppeteerOptionsFactory` / `PuppeteerLauncher` interfaces. Treat anything exported here as a breaking-change surface.
 
 ## Conventions & Patterns
 
