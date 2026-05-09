@@ -41,10 +41,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: '24'
           cache: npm
 
-      - run: npm install -g npm@latest
       - run: npm clean-install
       - run: npm audit signatures
       - run: npm run build
