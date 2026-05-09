@@ -69,6 +69,12 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
   }
 
   static forRootAsync(options: PuppeteerModuleAsyncOptions): DynamicModule {
+    if (!options.useFactory && !options.useClass && !options.useExisting) {
+      throw new Error(
+        'PuppeteerModule.forRootAsync requires one of useFactory, useClass, or useExisting',
+      );
+    }
+
     const pluginProvider = {
       provide: PUPPETEER_BROWSER_PLUGINS,
       useFactory: async (options: PuppeteerModuleOptions) => {
@@ -142,10 +148,8 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
       };
     }
 
-    const inject = [
-      (options.useClass ||
-        options.useExisting) as Type<PuppeteerOptionsFactory>,
-    ];
+    const factory = (options.useClass ?? options.useExisting) as Type<PuppeteerOptionsFactory>;
+    const inject = [factory];
 
     return {
       provide: PUPPETEER_MODULE_OPTIONS,
