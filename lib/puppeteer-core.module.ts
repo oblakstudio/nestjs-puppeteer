@@ -18,12 +18,41 @@ import {
   PuppeteerOptionsFactory,
 } from './interfaces';
 import {
+  DEFAULT_BROWSER_NAME,
   PUPPETEER_BROWSER_PLUGINS,
   PUPPETEER_MODULE_OPTIONS,
 } from './puppeteer.constants';
 import { getBrowserToken } from './common';
 
 const pluginRegistrationLogger = new Logger('PuppeteerModule');
+
+const registeredBrowserNames = new Set<string>();
+
+function resolveBrowserKey(name: string | undefined): string {
+  return name && name !== DEFAULT_BROWSER_NAME ? name : DEFAULT_BROWSER_NAME;
+}
+
+/**
+ * Reserve a browser name on the process-level registry. Two PuppeteerModule
+ * registrations sharing the same `name` (or both omitting it) would otherwise
+ * silently overwrite each other's DI token, leaving one Browser unreachable
+ * and un-shutdown. Throw immediately so the misconfiguration is loud.
+ */
+function claimBrowserName(name: string | undefined): void {
+  const key = resolveBrowserKey(name);
+  if (registeredBrowserNames.has(key)) {
+    const label = key === DEFAULT_BROWSER_NAME ? 'default (unnamed)' : `"${key}"`;
+    throw new Error(
+      `PuppeteerModule: a browser with name ${label} is already registered. ` +
+        `Each PuppeteerModule.forRoot()/forRootAsync() call must use a unique \`name\`.`,
+    );
+  }
+  registeredBrowserNames.add(key);
+}
+
+function releaseBrowserName(name: string | undefined): void {
+  registeredBrowserNames.delete(resolveBrowserKey(name));
+}
 
 /**
  * Register plugins on the global puppeteer-extra singleton, skipping any whose
@@ -68,6 +97,8 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
   ) {}
 
   static forRoot(options: PuppeteerModuleOptions = {}): DynamicModule {
+    claimBrowserName(options.name);
+
     const puppeteerModuleOptions = {
       provide: PUPPETEER_MODULE_OPTIONS,
       useValue: options,
@@ -104,6 +135,8 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
         'PuppeteerModule.forRootAsync requires one of useFactory, useClass, or useExisting',
       );
     }
+
+    claimBrowserName(options.name);
 
     const pluginProvider = {
       provide: PUPPETEER_BROWSER_PLUGINS,
@@ -145,6 +178,8 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
       } else {
         this.logger.error(`Failed to close browser: ${String(e)}`);
       }
+    } finally {
+      releaseBrowserName(this.options.name);
     }
   }
 
