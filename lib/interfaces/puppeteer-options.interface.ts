@@ -4,8 +4,16 @@ import {
   OptionalFactoryDependency,
   Type,
 } from '@nestjs/common';
-import { PuppeteerNodeLaunchOptions } from 'puppeteer';
+import { PuppeteerNode } from 'puppeteer';
 import { PuppeteerExtraPlugin } from 'puppeteer-extra';
+
+/**
+ * Launch options accepted by the installed puppeteer's `launch()`. Resolved
+ * structurally so the same type works across the supported peer-dep range
+ * (^21 || ^22 || ^23), where the canonical name has been renamed/deprecated
+ * (`PuppeteerLaunchOptions` → `PuppeteerNodeLaunchOptions` → `LaunchOptions`).
+ */
+type LaunchOptions = NonNullable<Parameters<PuppeteerNode['launch']>[0]>;
 
 export type PuppeteerModuleOptions = {
   /**
@@ -30,7 +38,7 @@ export type PuppeteerModuleOptions = {
    * Is the module global
    */
   isGlobal?: boolean;
-} & Partial<PuppeteerNodeLaunchOptions>;
+} & Partial<LaunchOptions>;
 
 export interface PuppeteerOptionsFactory {
   createPuppeteerOptions(
