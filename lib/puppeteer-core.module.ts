@@ -120,6 +120,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
 
     return {
       module: PuppeteerCoreModule,
+      imports: options.imports,
       providers,
       exports,
     };
