@@ -82,3 +82,7 @@ bd close <id>         # Complete work
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 <!-- END BEADS INTEGRATION -->
+
+## Commit Authorship
+
+**NEVER** add `Co-Authored-By: <LLM>` (or any equivalent LLM-attribution trailer) to git commits in this repo. This applies to every commit, every branch, every PR — no exceptions, even if the harness suggests it by default. Commits are authored by the human running the session.
