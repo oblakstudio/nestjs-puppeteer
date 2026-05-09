@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Injectable, Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Browser } from 'puppeteer';
 import {
@@ -63,6 +63,56 @@ describe('PuppeteerModule.forRootAsync with useClass', () => {
     } finally {
       await app.close();
       createSpy.mockRestore();
+    }
+  }, 60000);
+
+  it('threads `inject` dependencies into a useFactory', async () => {
+    @Injectable()
+    class Tag {
+      readonly value = 'tagged';
+    }
+
+    @Module({
+      providers: [Tag],
+      exports: [Tag],
+    })
+    class TagModule {}
+
+    const factory = jest.fn(
+      (tag: Tag): PuppeteerModuleOptions => ({
+        // Branch on the injected value to prove it actually reached the factory.
+        headless: true,
+        args: tag.value === 'tagged' ? [] : ['--should-not-happen'],
+      }),
+    );
+
+    @Module({
+      imports: [
+        PuppeteerModule.forRootAsync({
+          imports: [TagModule],
+          inject: [Tag],
+          useFactory: factory,
+        }),
+      ],
+    })
+    class InjectModule {}
+
+    const module = await Test.createTestingModule({
+      imports: [InjectModule],
+    }).compile();
+
+    const app = module.createNestApplication();
+    await app.init();
+
+    try {
+      const browser = app.get<Browser>(getBrowserToken());
+      expect(browser).toBeDefined();
+      expect(factory).toHaveBeenCalledTimes(1);
+      const arg = factory.mock.calls[0][0];
+      expect(arg).toBeInstanceOf(Tag);
+      expect(arg.value).toBe('tagged');
+    } finally {
+      await app.close();
     }
   }, 60000);
 });

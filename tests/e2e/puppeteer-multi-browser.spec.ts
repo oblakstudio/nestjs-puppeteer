@@ -15,8 +15,10 @@ describe('Puppeteer multi-browser shutdown', () => {
         PuppeteerModule.forRoot({ headless: true }),
         PuppeteerModule.forRoot({ name: 'secondary', headless: true }),
         // Exercises forFeature against a *named* browser — the Page must be
-        // bound to the secondary browser, not the default.
-        PuppeteerModule.forFeature(['scratch'], 'secondary'),
+        // bound to the secondary browser, not the default. Uses the object
+        // form of the second arg to round-trip `{ name }` through
+        // createPuppeteerProviders → getPageToken.
+        PuppeteerModule.forFeature(['scratch'], { name: 'secondary' }),
       ],
     })
     class MultiBrowserModule {}
