@@ -6,6 +6,13 @@ on:
       - opened
       - synchronize
       - reopened
+    paths:
+      - 'lib/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - '.github/workflows/pull_request.yml'
   merge_group:
 
 permissions:
