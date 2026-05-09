@@ -53,6 +53,42 @@ bd close <id>         # Complete work
 
 **NEVER** add `Co-Authored-By: <LLM>` (or any equivalent LLM-attribution trailer) to git commits in this repo. This applies to every commit, every branch, every PR — no exceptions, even if the harness suggests it by default. Commits are authored by the human running the session.
 
+## Commit Messages
+
+Angular conventional commits, enforced by commitlint + Husky (`.commitlintrc.json`). Format:
+
+```
+<type>(<scope>): <subject>
+
+<optional body, wrap at ~72 cols>
+
+<optional footer, e.g. BREAKING CHANGE: ...>
+```
+
+**Allowed types** (and only these): `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`, `sample`. A type prefix is **required**.
+
+**Subject case rule** — `subject-case` is configured to allow `sentence-case`, `start-case`, `pascal-case`, `upper-case`, *or* `lower-case`. The **whole subject** must conform to one of those — you cannot mix styles. The common pitfall is dropping an UPPERCASE identifier into otherwise lowercase prose, which matches none of the allowed styles and commitlint will reject it:
+
+- ❌ `ci(release): pass NPM_TOKEN to semantic-release` — lowercase prose with UPPER_CASE token, fails every style
+- ❌ `feat: add forRoot helper` — camelCase token in lowercase prose
+- ✅ `ci(release): pass npm auth token to semantic-release` — pure lowercase
+- ✅ `feat: add forRoot helper to PuppeteerModule` — start-case throughout
+
+If you really need a mixed-case identifier, put it in the **body**, not the subject. Rephrase the subject in plain prose.
+
+**Semantic-release impact** — `master` releases are fully automated from commit messages:
+
+- `feat:` → minor bump
+- `fix:` / `perf:` → patch bump
+- `BREAKING CHANGE:` footer (or `!` after type) → major bump
+- `chore:` / `ci:` / `docs:` / `test:` / `style:` / `refactor:` → no release
+
+Be deliberate. Don't tag a bug fix as `chore:` or it won't ship; don't tag a refactor as `feat:` or you'll publish a useless minor version.
+
+**Imperative mood** — "add X", "fix X", not "added X" or "adds X".
+
+**No LLM-attribution trailers** — see *Commit Authorship* above.
+
 ## Build & Test
 
 Node.js >= 20 (see `.nvmrc`). Package is published as `nestjs-puppeteer`; source lives in `lib/` and compiles to `dist/`. Peer deps span `@nestjs/common`/`@nestjs/core` `^10 || ^11` and `puppeteer` `^21 || ^22 || ^23` — public API and types must stay compatible across all of these.
