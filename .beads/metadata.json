@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "nestjs_puppeteer",
+  "project_id": "49c89952-9557-4a98-a3b1-7ad2f04c402b"
+}

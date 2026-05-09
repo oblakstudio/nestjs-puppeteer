@@ -1,6 +1,19 @@
-import { ModuleMetadata, Type } from '@nestjs/common';
-import { PuppeteerNodeLaunchOptions } from 'puppeteer';
+import {
+  InjectionToken,
+  ModuleMetadata,
+  OptionalFactoryDependency,
+  Type,
+} from '@nestjs/common';
+import { PuppeteerNode } from 'puppeteer';
 import { PuppeteerExtraPlugin } from 'puppeteer-extra';
+
+/**
+ * Launch options accepted by the installed puppeteer's `launch()`. Resolved
+ * structurally so the same type works across the supported peer-dep range
+ * (^21 || ^22 || ^23), where the canonical name has been renamed/deprecated
+ * (`PuppeteerLaunchOptions` → `PuppeteerNodeLaunchOptions` → `LaunchOptions`).
+ */
+type LaunchOptions = NonNullable<Parameters<PuppeteerNode['launch']>[0]>;
 
 export type PuppeteerModuleOptions = {
   /**
@@ -9,7 +22,15 @@ export type PuppeteerModuleOptions = {
   name?: string;
 
   /**
-   * Array of puppeteer-extra plugins
+   * Array of puppeteer-extra plugins.
+   *
+   * NOTE: puppeteer-extra registers plugins on a process-global singleton, so
+   * any plugin you list here affects every subsequent `puppeteer.launch()` in
+   * the same process — including launches by other PuppeteerModule instances
+   * that did not opt into the plugin. The module dedupes by plugin name to
+   * avoid stacking on repeated module re-registration, but it cannot scope a
+   * plugin to a single browser. Most plugins (e.g. stealth) are also
+   * incompatible with Chrome's "new headless" mode; pass `headless: true`.
    */
   plugins?: PuppeteerExtraPlugin[];
 
@@ -17,7 +38,7 @@ export type PuppeteerModuleOptions = {
    * Is the module global
    */
   isGlobal?: boolean;
-} & Partial<PuppeteerNodeLaunchOptions>;
+} & Partial<LaunchOptions>;
 
 export interface PuppeteerOptionsFactory {
   createPuppeteerOptions(
@@ -31,5 +52,5 @@ export interface PuppeteerModuleAsyncOptions extends Pick<ModuleMetadata, 'impor
   useExisting?: Type<PuppeteerOptionsFactory>;
   useClass?: Type<PuppeteerOptionsFactory>;
   useFactory?: (...args: any[]) => Promise<PuppeteerModuleOptions> | PuppeteerModuleOptions;
-  inject?: any[];
+  inject?: Array<InjectionToken | OptionalFactoryDependency>;
 }

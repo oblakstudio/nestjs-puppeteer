@@ -4,10 +4,10 @@
 Puppeteer module for Nest framework (node.js)
 
 [![npm](https://img.shields.io/npm/v/nestjs-puppeteer?logo=npm)](https://npmjs.com/package/nestjs-puppeteer)
-![Puppeter Peer Dep](https://img.shields.io/npm/dependency-version/nestjs-puppeteer/peer/@nestjs/core?logo=nestjs&logoColor=E42844)
-![NestJS Peer Dep](https://img.shields.io/npm/dependency-version/nestjs-puppeteer/peer/puppeteer?logo=puppeteer&logoColor=%23fff)  
+[![NestJS Peer Dep](https://img.shields.io/npm/dependency-version/nestjs-puppeteer/peer/@nestjs/core?logo=nestjs&logoColor=E42844)](https://www.npmjs.com/package/@nestjs/core)
+[![Puppeteer Peer Dep](https://img.shields.io/npm/dependency-version/nestjs-puppeteer/peer/puppeteer?logo=puppeteer&logoColor=%23fff)](https://www.npmjs.com/package/puppeteer)  
 ![npm](https://img.shields.io/npm/dm/nestjs-puppeteer)
-![GitHub](https://img.shields.io/github/license/oblakstudio/nestjs-puppeteer)
+[![License](https://img.shields.io/github/license/oblakstudio/nestjs-puppeteer)](https://github.com/oblakstudio/nestjs-puppeteer/blob/master/LICENSE)
 ![Codecov](https://img.shields.io/codecov/c/github/oblakstudio/nestjs-puppeteer?logo=codecov&color=%23F01F7A)
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
 
