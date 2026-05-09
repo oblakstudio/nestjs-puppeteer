@@ -14,7 +14,15 @@ export type PuppeteerModuleOptions = {
   name?: string;
 
   /**
-   * Array of puppeteer-extra plugins
+   * Array of puppeteer-extra plugins.
+   *
+   * NOTE: puppeteer-extra registers plugins on a process-global singleton, so
+   * any plugin you list here affects every subsequent `puppeteer.launch()` in
+   * the same process — including launches by other PuppeteerModule instances
+   * that did not opt into the plugin. The module dedupes by plugin name to
+   * avoid stacking on repeated module re-registration, but it cannot scope a
+   * plugin to a single browser. Most plugins (e.g. stealth) are also
+   * incompatible with Chrome's "new headless" mode; pass `headless: true`.
    */
   plugins?: PuppeteerExtraPlugin[];
 
