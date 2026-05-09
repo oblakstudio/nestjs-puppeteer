@@ -17,14 +17,17 @@ Puppeteer module for Nest framework (node.js)
 Headless Chrome provider for [NestJS](https://nestjs.com/), enabling easy integration of Puppeteer into your application.
 
 > [!IMPORTANT]
-> Since puppeteer v22, `headless: true` selects [Chrome's _"new headless"_ mode](https://developer.chrome.com/docs/chromium/new-headless) — the legacy `headless: 'new'` literal has been removed. Most `puppeteer-extra` plugins (e.g. stealth) were authored against the legacy headless implementation; if you need plugin compatibility, opt into the separate `chrome-headless-shell` binary by passing `headless: 'shell'`.
+> Since puppeteer v22, `headless: true` selects [Chrome's _"new headless"_ mode](https://developer.chrome.com/docs/chromium/new-headless) — the legacy `headless: 'new'` literal has been removed. Pass `headless: 'shell'` to opt into the separate `chrome-headless-shell` binary if you need the legacy behavior.
+
+> [!NOTE]
+> `puppeteer-extra` integration was removed in v3.0.0. The upstream project has been inactive since 2023 and its stealth plugins target the legacy headless mode that puppeteer v22 dropped as the default. Pin to the [2.x branch](https://github.com/oblakstudio/nestjs-puppeteer/tree/2.x) if you still need the plugin path, or migrate to [rebrowser-puppeteer](https://github.com/rebrowser/rebrowser-puppeteer) for active stealth support.
 
 ## Installation
 
 To begin using it, we first install the required dependencies.
 
 ```sh
-$ npm install --save nestjs-puppeteer puppeteer-extra puppeteer
+$ npm install --save nestjs-puppeteer puppeteer
 ```
 ## Usage
 
@@ -48,7 +51,6 @@ The ``forRoot()`` method supports all the configuration properties exposed by th
 | Property  | Description |
 | ------------- | ------------- |
 | ``name``  | Browser name  |
-| ``plugins``  | An array of ``puppeteer-extra`` plugins  |
 | ``isGlobal`` | Should the module be registered in the global context |
 | ``headless`` | `true` (default, runs in [new headless](https://developer.chrome.com/docs/chromium/new-headless) mode), `false` for headed, or `'shell'` to opt into the legacy `chrome-headless-shell` binary  |
 
