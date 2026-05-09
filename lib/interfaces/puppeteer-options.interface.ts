@@ -10,8 +10,8 @@ import { PuppeteerExtraPlugin } from 'puppeteer-extra';
 /**
  * Launch options accepted by the installed puppeteer's `launch()`. Resolved
  * structurally so the same type works across the supported peer-dep range
- * (^21 || ^22 || ^23), where the canonical name has been renamed/deprecated
- * (`PuppeteerLaunchOptions` → `PuppeteerNodeLaunchOptions` → `LaunchOptions`).
+ * (^22 || ^23 || ^24); v24 removed the legacy `PuppeteerLaunchOptions` /
+ * `PuppeteerNodeLaunchOptions` aliases in favor of `LaunchOptions`.
  */
 type LaunchOptions = NonNullable<Parameters<PuppeteerNode['launch']>[0]>;
 
@@ -29,8 +29,10 @@ export type PuppeteerModuleOptions = {
    * the same process — including launches by other PuppeteerModule instances
    * that did not opt into the plugin. The module dedupes by plugin name to
    * avoid stacking on repeated module re-registration, but it cannot scope a
-   * plugin to a single browser. Most plugins (e.g. stealth) are also
-   * incompatible with Chrome's "new headless" mode; pass `headless: true`.
+   * plugin to a single browser. Most plugins (e.g. stealth) were authored
+   * against the legacy headless implementation; since puppeteer v22 made
+   * new-headless the default for `headless: true`, opt into the legacy
+   * `chrome-headless-shell` binary via `headless: 'shell'` for plugin compat.
    */
   plugins?: PuppeteerExtraPlugin[];
 

@@ -17,9 +17,7 @@ Puppeteer module for Nest framework (node.js)
 Headless Chrome provider for [NestJS](https://nestjs.com/), enabling easy integration of Puppeteer into your application.
 
 > [!IMPORTANT]
-> Chrome introduces the _"New Headless"_ mode in version 112. Most of `puppeteer-extra` plugins are **NOT COMPATIBLE** with this mode. If you want to use `puppeteer-extra` plugins, you need to define `headless: true` in the module configuration.
->
-> You can read more about the new headless mode [here](https://developer.chrome.com/docs/chromium/new-headless).
+> Since puppeteer v22, `headless: true` selects [Chrome's _"new headless"_ mode](https://developer.chrome.com/docs/chromium/new-headless) — the legacy `headless: 'new'` literal has been removed. Most `puppeteer-extra` plugins (e.g. stealth) were authored against the legacy headless implementation; if you need plugin compatibility, opt into the separate `chrome-headless-shell` binary by passing `headless: 'shell'`.
 
 ## Installation
 
@@ -38,13 +36,13 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot({ headless: 'new' }),
+    PuppeteerModule.forRoot({ headless: true }),
   ],
 })
 export class AppModule {}
 ```
 
-The ``forRoot()`` method supports all the configuration properties exposed by the ``PuppeteerNodeLaunchOptions`` object used by the ``puppeteer.launch()`` method. There are several extra configuration properties described below.
+The ``forRoot()`` method supports all the configuration properties exposed by the ``LaunchOptions`` object used by the ``puppeteer.launch()`` method. There are several extra configuration properties described below.
 
 
 | Property  | Description |
@@ -52,7 +50,7 @@ The ``forRoot()`` method supports all the configuration properties exposed by th
 | ``name``  | Browser name  |
 | ``plugins``  | An array of ``puppeteer-extra`` plugins  |
 | ``isGlobal`` | Should the module be registered in the global context |
-| ``headless`` | `new` for the [New Headless](https://developer.chrome.com/docs/chromium/new-headless) mode, or `true`/`false`  |
+| ``headless`` | `true` (default, runs in [new headless](https://developer.chrome.com/docs/chromium/new-headless) mode), `false` for headed, or `'shell'` to opt into the legacy `chrome-headless-shell` binary  |
 
 Once this is done, the Puppeteer ``Browser`` instance will be available for injection in any of the providers in the application.
 
@@ -61,7 +59,7 @@ import { Browser } from 'puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot({ headless: 'new' }),
+    PuppeteerModule.forRoot({ headless: true }),
   ],
 })
 export class AppModule {
@@ -81,7 +79,7 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot({ headless: 'new' }),
+    PuppeteerModule.forRoot({ headless: true }),
     PuppeteerModule.forFeature(['page1', 'page2']),
   ],
 })
@@ -95,7 +93,7 @@ import { Page } from 'puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot({ headless: 'new' }),
+    PuppeteerModule.forRoot({ headless: true }),
     PuppeteerModule.forFeature(['page1', 'page2']),
   ],
 })
@@ -144,9 +142,9 @@ Note that this means that the ``PuppeteerConfigService`` has to implement the ``
 ```ts
 @Injectable()
 class PuppeteerConfigService implements PuppeteerOptionsFactory {
-  createPuppeteerOptions(): PuppeteerNodeLaunchOptions {
+  createPuppeteerOptions(): PuppeteerModuleOptions {
     return {
-      headless: 'new',
+      headless: true,
     };
   }
 }
