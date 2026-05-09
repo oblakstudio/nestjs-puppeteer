@@ -4,16 +4,35 @@ import {
   OptionalFactoryDependency,
   Type,
 } from '@nestjs/common';
-import { PuppeteerNode } from 'puppeteer';
-import { PuppeteerExtraPlugin } from 'puppeteer-extra';
+import type { Browser, PuppeteerNode } from 'puppeteer';
 
 /**
  * Launch options accepted by the installed puppeteer's `launch()`. Resolved
  * structurally so the same type works across the supported peer-dep range
- * (^21 || ^22 || ^23), where the canonical name has been renamed/deprecated
- * (`PuppeteerLaunchOptions` → `PuppeteerNodeLaunchOptions` → `LaunchOptions`).
+ * (^22 || ^23 || ^24); v24 removed the legacy `PuppeteerLaunchOptions` /
+ * `PuppeteerNodeLaunchOptions` aliases in favor of `LaunchOptions`.
  */
 type LaunchOptions = NonNullable<Parameters<PuppeteerNode['launch']>[0]>;
+
+/**
+ * Minimal contract for a puppeteer-compatible launcher. Any object exposing
+ * a `launch(options)` method that returns a `Promise<Browser>` will satisfy
+ * it — the returned `Browser` is treated structurally and only needs to
+ * support the surface the rest of the library relies on (`connected`,
+ * `close()`, `newPage()`).
+ *
+ * Both the input and the returned browser are intentionally untyped here:
+ * puppeteer's `Browser` is an abstract class with private fields, and so are
+ * many of its callback parameters (`TargetFilterCallback` etc.). Drop-in
+ * forks like `rebrowser-puppeteer` ship their own structurally-identical
+ * but nominally distinct copies of these types, so a strictly-typed
+ * `LaunchOptions` parameter would refuse rebrowser at every call site for
+ * no runtime benefit. The library casts the result to upstream `Browser`
+ * internally; structural compatibility is the only real contract.
+ */
+export interface PuppeteerLauncher<B = Browser> {
+  launch(options?: any): Promise<B>;
+}
 
 export type PuppeteerModuleOptions = {
   /**
@@ -22,22 +41,17 @@ export type PuppeteerModuleOptions = {
   name?: string;
 
   /**
-   * Array of puppeteer-extra plugins.
-   *
-   * NOTE: puppeteer-extra registers plugins on a process-global singleton, so
-   * any plugin you list here affects every subsequent `puppeteer.launch()` in
-   * the same process — including launches by other PuppeteerModule instances
-   * that did not opt into the plugin. The module dedupes by plugin name to
-   * avoid stacking on repeated module re-registration, but it cannot scope a
-   * plugin to a single browser. Most plugins (e.g. stealth) are also
-   * incompatible with Chrome's "new headless" mode; pass `headless: true`.
-   */
-  plugins?: PuppeteerExtraPlugin[];
-
-  /**
    * Is the module global
    */
   isGlobal?: boolean;
+
+  /**
+   * Optional launcher used in place of the bundled `puppeteer` import.
+   * Pass any object exposing a `launch(options)` method — for example
+   * `rebrowser-puppeteer` for anti-detection patches. Defaults to the
+   * upstream `puppeteer` package.
+   */
+  launcher?: PuppeteerLauncher<any>;
 } & Partial<LaunchOptions>;
 
 export interface PuppeteerOptionsFactory {

@@ -16,17 +16,36 @@ Puppeteer module for Nest framework (node.js)
 
 Headless Chrome provider for [NestJS](https://nestjs.com/), enabling easy integration of Puppeteer into your application.
 
-> [!IMPORTANT]
-> Chrome introduces the _"New Headless"_ mode in version 112. Most of `puppeteer-extra` plugins are **NOT COMPATIBLE** with this mode. If you want to use `puppeteer-extra` plugins, you need to define `headless: true` in the module configuration.
->
-> You can read more about the new headless mode [here](https://developer.chrome.com/docs/chromium/new-headless).
+See [Notes](#notes) at the bottom of this README for caveats about headless modes, the dropped `puppeteer-extra` integration, and the `rebrowser-puppeteer` launcher.
+
+## Compatibility
+
+| Peer dep              | Supported range           | Notes                                                                                |
+| --------------------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| Node.js               | `>= 20`                   | Matches `engines.node`                                                               |
+| `@nestjs/common`      | `^10 \|\| ^11`            | Required peer                                                                        |
+| `@nestjs/core`        | `^10 \|\| ^11`            | Required peer                                                                        |
+| `puppeteer`           | `^22 \|\| ^23 \|\| ^24`   | Optional peer — required at runtime unless a `launcher` is supplied                  |
+| `rebrowser-puppeteer` | `^24`                     | Optional peer, consumed via the `launcher` option                                    |
+
+At least one of `puppeteer` or a `launcher`-passed alternative (e.g. `rebrowser-puppeteer`) must be reachable at runtime. The library lazy-loads `puppeteer` via NestJS's `loadPackage` only when no `launcher` is configured, so consumers who always supply a `launcher` can omit `puppeteer` entirely.
+
+CI exercises NestJS 10 + 11 against Puppeteer 23 + 24 (with `rebrowser-puppeteer ^24` always present), on Node 20 / 22 / 24.
 
 ## Installation
 
-To begin using it, we first install the required dependencies.
+Pick the install line that matches how you intend to launch Chromium:
+
+| Setup                                 | Install                                                          |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| Vanilla `puppeteer`                   | `npm i nestjs-puppeteer puppeteer`                               |
+| `rebrowser-puppeteer` (via `launcher`) | `npm i nestjs-puppeteer rebrowser-puppeteer puppeteer-core`      |
+| Custom launcher                       | `npm i nestjs-puppeteer <your-launcher> puppeteer-core`          |
+
+`puppeteer-core` is recommended for setups that do not install `puppeteer` itself: it ships the `Browser` class identity used as the DI token (see the note at the bottom of this README) without bundling Chromium. If `puppeteer` is already installed you do not need `puppeteer-core` separately.
 
 ```sh
-$ npm install --save nestjs-puppeteer puppeteer-extra puppeteer
+$ npm install --save nestjs-puppeteer puppeteer
 ```
 ## Usage
 
@@ -38,21 +57,20 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot({ headless: 'new' }),
+    PuppeteerModule.forRoot({ headless: true }),
   ],
 })
 export class AppModule {}
 ```
 
-The ``forRoot()`` method supports all the configuration properties exposed by the ``PuppeteerNodeLaunchOptions`` object used by the ``puppeteer.launch()`` method. There are several extra configuration properties described below.
+The ``forRoot()`` method supports all the configuration properties exposed by the ``LaunchOptions`` object used by the ``puppeteer.launch()`` method. There are several extra configuration properties described below.
 
 
 | Property  | Description |
 | ------------- | ------------- |
 | ``name``  | Browser name  |
-| ``plugins``  | An array of ``puppeteer-extra`` plugins  |
 | ``isGlobal`` | Should the module be registered in the global context |
-| ``headless`` | `new` for the [New Headless](https://developer.chrome.com/docs/chromium/new-headless) mode, or `true`/`false`  |
+| ``headless`` | `true` (default, runs in [new headless](https://developer.chrome.com/docs/chromium/new-headless) mode), `false` for headed, or `'shell'` to opt into the legacy `chrome-headless-shell` binary  |
 
 Once this is done, the Puppeteer ``Browser`` instance will be available for injection in any of the providers in the application.
 
@@ -61,7 +79,7 @@ import { Browser } from 'puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot({ headless: 'new' }),
+    PuppeteerModule.forRoot({ headless: true }),
   ],
 })
 export class AppModule {
@@ -81,7 +99,7 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot({ headless: 'new' }),
+    PuppeteerModule.forRoot({ headless: true }),
     PuppeteerModule.forFeature(['page1', 'page2']),
   ],
 })
@@ -95,7 +113,7 @@ import { Page } from 'puppeteer';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot({ headless: 'new' }),
+    PuppeteerModule.forRoot({ headless: true }),
     PuppeteerModule.forFeature(['page1', 'page2']),
   ],
 })
@@ -144,10 +162,50 @@ Note that this means that the ``PuppeteerConfigService`` has to implement the ``
 ```ts
 @Injectable()
 class PuppeteerConfigService implements PuppeteerOptionsFactory {
-  createPuppeteerOptions(): PuppeteerNodeLaunchOptions {
+  createPuppeteerOptions(): PuppeteerModuleOptions {
     return {
-      headless: 'new',
+      headless: true,
     };
   }
 }
 ```
+
+### Using rebrowser-puppeteer
+
+`PuppeteerModule` accepts a `launcher` option for swapping the bundled `puppeteer` for a drop-in alternative. The primary supported alternative is [`rebrowser-puppeteer`](https://github.com/rebrowser/rebrowser-patches), which applies anti-detection patches on top of upstream puppeteer.
+
+```sh
+$ npm install --save rebrowser-puppeteer
+```
+
+```ts
+import puppeteer from 'rebrowser-puppeteer';
+import { PuppeteerModule } from 'nestjs-puppeteer';
+
+@Module({
+  imports: [
+    PuppeteerModule.forRoot({ launcher: puppeteer, headless: true }),
+  ],
+})
+export class AppModule {}
+```
+
+The `launcher` option accepts any object exposing a `launch(options)` method, so other puppeteer-compatible builds work the same way. See [Notes](#notes) below for two important caveats — the `Browser` import gotcha and a workaround for `rebrowser-puppeteer`'s broken postinstall.
+
+## Notes
+
+> [!IMPORTANT]
+> **Headless mode changed in Puppeteer v22.** `headless: true` now selects [Chrome's _"new headless"_ mode](https://developer.chrome.com/docs/chromium/new-headless); the legacy `headless: 'new'` literal has been removed. Pass `headless: 'shell'` to opt into the separate `chrome-headless-shell` binary if you need the legacy behaviour.
+
+> [!NOTE]
+> **`puppeteer-extra` integration was removed in v3.0.0.** The upstream project has been inactive since 2023 and its stealth plugins target the legacy headless mode that Puppeteer v22 dropped as the default. Pin to the [2.x branch](https://github.com/oblakstudio/nestjs-puppeteer/tree/2.x) if you still need the plugin path, or migrate to [`rebrowser-puppeteer`](https://github.com/rebrowser/rebrowser-puppeteer) (see _Using rebrowser-puppeteer_ above) for active stealth support.
+
+> [!IMPORTANT]
+> **Always import `Browser` from `puppeteer` (or `puppeteer-core`)** — not from `rebrowser-puppeteer` — when using `@InjectBrowser()`. The decorator's DI token is the upstream `Browser` class identity; a class re-exported from a different package is a different token even though the two are structurally compatible at runtime. If you do not install `puppeteer` itself (e.g. you use `rebrowser-puppeteer` via the `launcher` option), add `puppeteer-core` so the upstream `Browser` value/type is still resolvable.
+
+> [!WARNING]
+> **`rebrowser-puppeteer`'s postinstall is broken.** It calls upstream Puppeteer's `downloadBrowsers()`, which downloads upstream's pinned Chromium revision rather than rebrowser's own — so the first `.launch()` call fails with `Could not find Chrome (ver. <revision>)`. Trigger rebrowser's own download once after install:
+>
+> ```sh
+> $ node -e "import('rebrowser-puppeteer/internal/node/install.js').then(m => m.downloadBrowsers())"
+> ```

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { Browser, Page } from 'puppeteer';
 import { InjectBrowser, InjectPage } from '../../../lib';
 
@@ -22,22 +22,9 @@ export class BaseController {
     return { html: await page.content() };
   }
 
-  @Get('stealth-check')
-  async stealthCheck(): Promise<boolean> {
-    const page = await this.browser.newPage();
-    await page.goto('https://arh.antoinevastel.com/bots/areyouheadless');
-    return (await page.content()).includes('You are not Chrome headless');
-  }
-
-  @Get('is-incognito')
-  async isIncognito(): Promise<boolean> {
-    await this.browser.createBrowserContext();
-    return this.browser.browserContexts().length > 1;
-  }
-
   @Get('test-page')
-  async testPage(): Promise<boolean> {
-    await this.dummyPage.goto('https://arh.antoinevastel.com/bots/areyouheadless');
-    return (await this.dummyPage.content()).includes('You are not Chrome headless');
+  async testPage(@Query('url') url: string): Promise<boolean> {
+    await this.dummyPage.goto(url);
+    return (await this.dummyPage.content()).includes('Hello World!');
   }
 }
