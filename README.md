@@ -20,19 +20,29 @@ See [Notes](#notes) at the bottom of this README for caveats about headless mode
 
 ## Compatibility
 
-| Peer dep              | Supported range           | Notes                                  |
-| --------------------- | ------------------------- | -------------------------------------- |
-| Node.js               | `>= 20`                   | Matches `engines.node`                 |
-| `@nestjs/common`      | `^10 \|\| ^11`            | Required peer                          |
-| `@nestjs/core`        | `^10 \|\| ^11`            | Required peer                          |
-| `puppeteer`           | `^22 \|\| ^23 \|\| ^24`   | Required peer                          |
-| `rebrowser-puppeteer` | `^24`                     | Optional, used via the `launcher` opt  |
+| Peer dep              | Supported range           | Notes                                                                                |
+| --------------------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| Node.js               | `>= 20`                   | Matches `engines.node`                                                               |
+| `@nestjs/common`      | `^10 \|\| ^11`            | Required peer                                                                        |
+| `@nestjs/core`        | `^10 \|\| ^11`            | Required peer                                                                        |
+| `puppeteer`           | `^22 \|\| ^23 \|\| ^24`   | Optional peer — required at runtime unless a `launcher` is supplied                  |
+| `rebrowser-puppeteer` | `^24`                     | Optional peer, consumed via the `launcher` option                                    |
+
+At least one of `puppeteer` or a `launcher`-passed alternative (e.g. `rebrowser-puppeteer`) must be reachable at runtime. The library lazy-loads `puppeteer` via NestJS's `loadPackage` only when no `launcher` is configured, so consumers who always supply a `launcher` can omit `puppeteer` entirely.
 
 CI exercises NestJS 10 + 11 against Puppeteer 23 + 24 (with `rebrowser-puppeteer ^24` always present), on Node 20 / 22 / 24.
 
 ## Installation
 
-To begin using it, we first install the required dependencies.
+Pick the install line that matches how you intend to launch Chromium:
+
+| Setup                                 | Install                                                          |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| Vanilla `puppeteer`                   | `npm i nestjs-puppeteer puppeteer`                               |
+| `rebrowser-puppeteer` (via `launcher`) | `npm i nestjs-puppeteer rebrowser-puppeteer puppeteer-core`      |
+| Custom launcher                       | `npm i nestjs-puppeteer <your-launcher> puppeteer-core`          |
+
+`puppeteer-core` is recommended for setups that do not install `puppeteer` itself: it ships the `Browser` class identity used as the DI token (see the note at the bottom of this README) without bundling Chromium. If `puppeteer` is already installed you do not need `puppeteer-core` separately.
 
 ```sh
 $ npm install --save nestjs-puppeteer puppeteer
@@ -191,7 +201,7 @@ The `launcher` option accepts any object exposing a `launch(options)` method, so
 > **`puppeteer-extra` integration was removed in v3.0.0.** The upstream project has been inactive since 2023 and its stealth plugins target the legacy headless mode that Puppeteer v22 dropped as the default. Pin to the [2.x branch](https://github.com/oblakstudio/nestjs-puppeteer/tree/2.x) if you still need the plugin path, or migrate to [`rebrowser-puppeteer`](https://github.com/rebrowser/rebrowser-puppeteer) (see _Using rebrowser-puppeteer_ above) for active stealth support.
 
 > [!IMPORTANT]
-> **Always import `Browser` from `puppeteer`** (not from `rebrowser-puppeteer`) when using `@InjectBrowser()`. The decorator's DI token is the upstream `Browser` class identity; a class re-exported from a different package is a different token even though the two are structurally compatible at runtime.
+> **Always import `Browser` from `puppeteer` (or `puppeteer-core`)** — not from `rebrowser-puppeteer` — when using `@InjectBrowser()`. The decorator's DI token is the upstream `Browser` class identity; a class re-exported from a different package is a different token even though the two are structurally compatible at runtime. If you do not install `puppeteer` itself (e.g. you use `rebrowser-puppeteer` via the `launcher` option), add `puppeteer-core` so the upstream `Browser` value/type is still resolvable.
 
 > [!WARNING]
 > **`rebrowser-puppeteer`'s postinstall is broken.** It calls upstream Puppeteer's `downloadBrowsers()`, which downloads upstream's pinned Chromium revision rather than rebrowser's own — so the first `.launch()` call fails with `Could not find Chrome (ver. <revision>)`. Trigger rebrowser's own download once after install:

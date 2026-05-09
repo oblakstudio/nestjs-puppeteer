@@ -4,7 +4,7 @@ import {
   OptionalFactoryDependency,
   Type,
 } from '@nestjs/common';
-import { Browser, PuppeteerNode } from 'puppeteer';
+import type { Browser, PuppeteerNode } from 'puppeteer';
 
 /**
  * Launch options accepted by the installed puppeteer's `launch()`. Resolved

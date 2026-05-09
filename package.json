@@ -60,6 +60,9 @@
     "rxjs": "*"
   },
   "peerDependenciesMeta": {
+    "puppeteer": {
+      "optional": true
+    },
     "rebrowser-puppeteer": {
       "optional": true
     }

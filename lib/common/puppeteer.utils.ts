@@ -1,5 +1,10 @@
 import { Type } from '@nestjs/common';
-import { Browser, Page } from 'puppeteer';
+// `Browser` is intentionally a value import (not `import type`): it is the
+// runtime DI token returned by `getBrowserToken` for the default unnamed
+// browser. Flipping it to a type-only import would erase the token at compile
+// time and break `@InjectBrowser()` resolution. `Page` is types-only.
+import { Browser } from 'puppeteer';
+import type { Page } from 'puppeteer';
 import { PuppeteerModuleOptions } from '../interfaces';
 import { DEFAULT_BROWSER_NAME } from '../puppeteer.constants';
 

@@ -9,8 +9,10 @@ import {
   Type,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import puppeteer, { Browser } from 'puppeteer';
+import { loadPackage } from '@nestjs/common/utils/load-package.util';
+import type { Browser, PuppeteerNode } from 'puppeteer';
 import {
+  PuppeteerLauncher,
   PuppeteerModuleAsyncOptions,
   PuppeteerModuleOptions,
   PuppeteerOptionsFactory,
@@ -49,6 +51,15 @@ function releaseBrowserName(name: string | undefined): void {
   registeredBrowserNames.delete(resolveBrowserKey(name));
 }
 
+function resolveLauncher(
+  options: PuppeteerModuleOptions,
+): PuppeteerLauncher<any> {
+  return (
+    options.launcher ??
+    (loadPackage('puppeteer', 'PuppeteerModule') as PuppeteerNode)
+  );
+}
+
 @Global()
 @Module({})
 export class PuppeteerCoreModule implements OnApplicationShutdown {
@@ -70,7 +81,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
     const browserProvider = {
       provide: getBrowserToken(options),
       useFactory: async (options: PuppeteerModuleOptions) => {
-        return await (options.launcher ?? puppeteer).launch(options);
+        return await resolveLauncher(options).launch(options);
       },
       inject: [PUPPETEER_MODULE_OPTIONS],
     };
@@ -97,7 +108,7 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
     const browserProvider = {
       provide: getBrowserToken(options),
       useFactory: async (options: PuppeteerModuleOptions) => {
-        return await (options.launcher ?? puppeteer).launch(options);
+        return await resolveLauncher(options).launch(options);
       },
       inject: [PUPPETEER_MODULE_OPTIONS],
     };
