@@ -24,7 +24,7 @@ jobs:
       id-token: write       # OIDC for npm provenance
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.OBLAKBOT_PAT }}
