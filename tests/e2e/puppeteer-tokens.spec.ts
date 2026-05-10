@@ -1,8 +1,9 @@
-import { Browser } from 'puppeteer';
+import { Browser, BrowserContext } from 'puppeteer';
 import {
   DEFAULT_BROWSER_NAME,
   getBrowserPrefix,
   getBrowserToken,
+  getContextToken,
   getPageToken,
 } from '../../lib';
 
@@ -52,6 +53,28 @@ describe('puppeteer.utils token helpers', () => {
 
     it('returns the unprefixed token for an empty options object', () => {
       expect(getPageToken('home', {})).toBe('homePage');
+    });
+  });
+
+  describe('getContextToken', () => {
+    it('returns BrowserContext class for the default (no-arg) case', () => {
+      expect(getContextToken()).toBe(BrowserContext);
+    });
+
+    it('returns BrowserContext class when DEFAULT_BROWSER_NAME is passed as a string', () => {
+      expect(getContextToken(DEFAULT_BROWSER_NAME)).toBe(BrowserContext);
+    });
+
+    it('returns `${name}BrowserContext` for a string name', () => {
+      expect(getContextToken('foo')).toBe('fooBrowserContext');
+    });
+
+    it('returns `${name}BrowserContext` for an options object with a name', () => {
+      expect(getContextToken({ name: 'foo' })).toBe('fooBrowserContext');
+    });
+
+    it('returns BrowserContext class for an empty options object', () => {
+      expect(getContextToken({})).toBe(BrowserContext);
     });
   });
 
