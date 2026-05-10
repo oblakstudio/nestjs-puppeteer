@@ -21,7 +21,7 @@ import {
   DEFAULT_BROWSER_NAME,
   PUPPETEER_MODULE_OPTIONS,
 } from './puppeteer.constants';
-import { getBrowserToken } from './common';
+import { getBrowserToken, getContextToken } from './common';
 
 const registeredBrowserNames = new Set<string>();
 
@@ -86,8 +86,16 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
       inject: [PUPPETEER_MODULE_OPTIONS],
     };
 
-    const providers = [puppeteerModuleOptions, browserProvider];
-    const exports = [browserProvider];
+    const contextProvider = {
+      provide: getContextToken(options),
+      useFactory: async (browser: Browser) => {
+        return await browser.createBrowserContext();
+      },
+      inject: [getBrowserToken(options)],
+    };
+
+    const providers = [puppeteerModuleOptions, browserProvider, contextProvider];
+    const exports = [browserProvider, contextProvider];
 
     return {
       module: PuppeteerCoreModule,
@@ -112,11 +120,18 @@ export class PuppeteerCoreModule implements OnApplicationShutdown {
       },
       inject: [PUPPETEER_MODULE_OPTIONS],
     };
+    const contextProvider = {
+      provide: getContextToken(options),
+      useFactory: async (browser: Browser) => {
+        return await browser.createBrowserContext();
+      },
+      inject: [getBrowserToken(options)],
+    };
     const asyncProviders = this.createAsyncProviders(options);
 
-    const providers = [...asyncProviders, browserProvider];
+    const providers = [...asyncProviders, browserProvider, contextProvider];
 
-    const exports = [browserProvider];
+    const exports = [browserProvider, contextProvider];
 
     return {
       module: PuppeteerCoreModule,

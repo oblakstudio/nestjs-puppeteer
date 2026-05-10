@@ -1,6 +1,9 @@
 name: Test
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types:
       - opened
@@ -85,7 +88,7 @@ jobs:
 
   coverage:
     name: Coverage
-    if: github.event_name == 'merge_group'
+    if: github.event_name == 'merge_group' || github.event_name == 'push'
     runs-on: ubuntu-latest
     needs:
       - lint
@@ -101,5 +104,9 @@ jobs:
       - run: aa-exec --profile=chrome npm run test:e2e:cov
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v6
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: ./tests/coverage/lcov.info
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

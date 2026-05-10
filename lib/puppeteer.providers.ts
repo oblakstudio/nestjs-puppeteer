@@ -1,6 +1,6 @@
 import { Provider } from '@nestjs/common';
-import type { Browser } from 'puppeteer';
-import { getBrowserToken, getPageToken } from './common';
+import type { BrowserContext } from 'puppeteer';
+import { getContextToken, getPageToken } from './common';
 import { PuppeteerModuleOptions } from './interfaces';
 
 export function createPuppeteerProviders(
@@ -9,9 +9,9 @@ export function createPuppeteerProviders(
 ): Provider[] {
   return (pages || []).map((page) => ({
     provide: getPageToken(page, browser),
-    useFactory: async(browser:Browser) => {
-      return await browser.newPage();
+    useFactory: async(context: BrowserContext) => {
+      return await context.newPage();
     },
-    inject: [getBrowserToken(browser)]
+    inject: [getContextToken(browser)]
   }));
 }

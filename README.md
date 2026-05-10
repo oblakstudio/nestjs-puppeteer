@@ -89,6 +89,46 @@ export class AppModule {
 
 If you used the name option when registering the module, you can inject the browser by name.
 
+### Browser context
+
+Each root registration also creates an isolated Puppeteer ``BrowserContext`` from its registered browser. Pages registered through ``forFeature()`` are created from this context, so injected pages and the injected context share the same browser session.
+
+```ts
+import { BrowserContext, Page } from 'puppeteer';
+
+@Module({
+  imports: [
+    PuppeteerModule.forRoot({ headless: true }),
+    PuppeteerModule.forFeature(['page1']),
+  ],
+})
+export class AppModule {
+  constructor(
+    @InjectContext() private readonly context: BrowserContext,
+    @InjectPage('page1') private readonly page1: Page,
+  ) {}
+}
+```
+
+Named browser registrations use the same name when injecting the context.
+
+```ts
+@Module({
+  imports: [
+    PuppeteerModule.forRoot({ name: 'reports', headless: true }),
+    PuppeteerModule.forFeature(['summary'], 'reports'),
+  ],
+})
+export class ReportsModule {
+  constructor(
+    @InjectContext('reports') private readonly context: BrowserContext,
+    @InjectPage('summary', 'reports') private readonly page: Page,
+  ) {}
+}
+```
+
+For manual lookups, use ``getContextToken()`` for the default context or ``getContextToken('reports')`` for a named browser registration.
+
 ### ForFeature
 
 After module registration, we can register specific pages for injection.
