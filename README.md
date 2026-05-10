@@ -8,7 +8,7 @@ Puppeteer module for Nest framework (node.js)
 [![Puppeteer Peer Dep](https://img.shields.io/npm/dependency-version/nestjs-puppeteer/peer/puppeteer?logo=puppeteer&logoColor=%23fff)](https://www.npmjs.com/package/puppeteer)  
 ![npm](https://img.shields.io/npm/dm/nestjs-puppeteer)
 [![License](https://img.shields.io/github/license/oblakstudio/nestjs-puppeteer)](https://github.com/oblakstudio/nestjs-puppeteer/blob/master/LICENSE)
-![Codecov](https://img.shields.io/codecov/c/github/oblakstudio/nestjs-puppeteer?logo=codecov&color=%23F01F7A)
+[![Codecov](https://img.shields.io/codecov/c/github/oblakstudio/nestjs-puppeteer?logo=codecov&color=%23F01F7A)](https://codecov.io/gh/oblakstudio/nestjs-puppeteer)
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
 
 
